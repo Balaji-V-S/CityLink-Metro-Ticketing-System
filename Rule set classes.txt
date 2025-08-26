@@ -1,0 +1,101 @@
+
+Hey! Here's a casual breakdown of the fare rule classes used in the CityLink Farebox system. All of them now use LocalDateTime for accurate time-based fare calculations.
+
+1. BaseFareRule.java
+--------------------
+This one's the simplest. It just sets the base fare to ₹25 if the rule is enabled.
+
+class BaseFareRule implements FareRule {
+    private boolean enabled = true;
+
+    public double apply(TapLogs currentTap, List<TapLogs> history, double currentFare) {
+        return enabled ? 25.0 : currentFare;
+    }
+
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+}
+
+2. PeakFareRule.java
+---------------------
+This rule checks if the tap happened during peak hours (8–10 AM or 6–8 PM). If yes, it bumps the fare by 50%.
+
+class PeakFareRule implements FareRule {
+    private boolean enabled = true;
+
+    public double apply(TapLogs currentTap, List<TapLogs> history, double currentFare) {
+        if (!enabled) return currentFare;
+        LocalTime time = currentTap.getDataTime().toLocalTime();
+        if ((time.isAfter(LocalTime.of(7, 59)) && time.isBefore(LocalTime.of(10, 1))) ||
+            (time.isAfter(LocalTime.of(17, 59)) && time.isBefore(LocalTime.of(20, 1)))) {
+            return currentFare * 1.5;
+        }
+        return currentFare;
+    }
+
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+}
+
+3. TransferRule.java
+---------------------
+This one's cool. If the rider taps again within 30 minutes and switches lines, the fare is waived (₹0).
+
+class TransferRule implements FareRule {
+    private boolean enabled = true;
+
+    public double apply(TapLogs currentTap, List<TapLogs> history, double currentFare) {
+        if (!enabled || history.isEmpty()) return currentFare;
+        TapLogs lastTap = history.get(history.size() - 1);
+        Duration diff = Duration.between(lastTap.getDataTime(), currentTap.getDataTime());
+        if (diff.toMinutes() <= 30 && !lastTap.getLine().equals(currentTap.getLine())) {
+            return 0.0;
+        }
+        return currentFare;
+    }
+
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+}
+
+4. NightDiscountRule.java
+--------------------------
+If the tap happens between 10 PM and midnight, this rule gives a 20% discount.
+
+class NightDiscountRule implements FareRule {
+    private boolean enabled = true;
+
+    public double apply(TapLogs currentTap, List<TapLogs> history, double currentFare) {
+        if (!enabled) return currentFare;
+        LocalTime time = currentTap.getDataTime().toLocalTime();
+        if (time.isAfter(LocalTime.of(21, 59)) && time.isBefore(LocalTime.MIDNIGHT)) {
+            return currentFare * 0.8;
+        }
+        return currentFare;
+    }
+
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+}
+
+5. PostMidnightRule.java
+-------------------------
+This one kicks in between midnight and 4 AM. It gives a 35% discount.
+
+class PostMidnightRule implements FareRule {
+    private boolean enabled = true;
+
+    public double apply(TapLogs currentTap, List<TapLogs> history, double currentFare) {
+        if (!enabled) return currentFare;
+        LocalTime time = currentTap.getDataTime().toLocalTime();
+        if (time.isAfter(LocalTime.MIDNIGHT.minusSeconds(1)) && time.isBefore(LocalTime.of(4, 0))) {
+            return currentFare * 0.65;
+        }
+        return currentFare;
+    }
+
+    public boolean isEnabled() { return enabled; }
+    public void setEnabled(boolean enabled) { this.enabled = enabled; }
+}
+
+That's it! Each rule is super modular and can be toggled on/off using the `enabled` flag. Makes it easy to A/B test your fare logic.
