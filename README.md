@@ -1,6 +1,6 @@
 # 🚇 CityLink-Metro Ticketing System
 
-A **Java console-based project** that computes metro ticket fares based on configurable **rule sets**.  
+A Java console-based project that computes metro ticket fares based on configurable **rule sets**.  
 The project demonstrates **strong OOP concepts, SOLID principles**, and a **3-Layer Architecture** (UI → Service → DAO).
 ---
 
@@ -27,7 +27,7 @@ The project demonstrates **strong OOP concepts, SOLID principles**, and a **3-La
 ---
 
 ## 🏗️ Project Structure  
-```
+```plaintext
 CityLink-Metro-Ticketing-System/
 │── src/
 │   ├── com.citylink.ui/          # Console UI (Main class)
