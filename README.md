@@ -27,7 +27,7 @@ The project demonstrates **strong OOP concepts, SOLID principles**, and a **3-La
 ---
 
 ## 🏗️ Project Structure  
-```plaintext
+```
 CityLink-Metro-Ticketing-System/
 │── src/
 │   ├── com.citylink.ui/          # Console UI (Main class)
